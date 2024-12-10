@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>GraphDialog</class>
+ <widget class="QDialog" name="GraphDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>480</width>
+    <height>400</height>
+   </rect>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>9</pointsize>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <widget class="QRadioButton" name="radioH">
+   <property name="geometry">
+    <rect>
+     <x>180</x>
+     <y>3</y>
+     <width>32</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>H</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBoxB">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>3</y>
+     <width>30</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>B</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBoxR">
+   <property name="geometry">
+    <rect>
+     <x>17</x>
+     <y>3</y>
+     <width>30</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>R</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBoxAve">
+   <property name="geometry">
+    <rect>
+     <x>255</x>
+     <y>3</y>
+     <width>66</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Average</string>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="radioV">
+   <property name="geometry">
+    <rect>
+     <x>215</x>
+     <y>3</y>
+     <width>30</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>V</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBoxG">
+   <property name="geometry">
+    <rect>
+     <x>53</x>
+     <y>3</y>
+     <width>31</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>G</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="labelXAxis">
+   <property name="geometry">
+    <rect>
+     <x>165</x>
+     <y>375</y>
+     <width>80</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::LayoutDirection::LeftToRight</enum>
+   </property>
+   <property name="text">
+    <string>TextLabel</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignmentFlag::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="labelDirection">
+   <property name="geometry">
+    <rect>
+     <x>125</x>
+     <y>5</y>
+     <width>50</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Direction</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButtonAuto">
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>3</y>
+     <width>70</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="focusPolicy">
+    <enum>Qt::FocusPolicy::ClickFocus</enum>
+   </property>
+   <property name="text">
+    <string>AutoScale</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButtonCopy">
+   <property name="geometry">
+    <rect>
+     <x>330</x>
+     <y>3</y>
+     <width>60</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="focusPolicy">
+    <enum>Qt::FocusPolicy::ClickFocus</enum>
+   </property>
+   <property name="text">
+    <string>Copy</string>
+   </property>
+   <property name="flat">
+    <bool>false</bool>
+   </property>
+  </widget>
+ </widget>
+ <tabstops>
+  <tabstop>checkBoxR</tabstop>
+  <tabstop>checkBoxG</tabstop>
+  <tabstop>checkBoxB</tabstop>
+  <tabstop>radioH</tabstop>
+  <tabstop>radioV</tabstop>
+  <tabstop>checkBoxAve</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+ <designerdata>
+  <property name="gridDeltaX">
+   <number>5</number>
+  </property>
+  <property name="gridDeltaY">
+   <number>5</number>
+  </property>
+  <property name="gridSnapX">
+   <bool>true</bool>
+  </property>
+  <property name="gridSnapY">
+   <bool>true</bool>
+  </property>
+  <property name="gridVisible">
+   <bool>false</bool>
+  </property>
+ </designerdata>
+</ui>
