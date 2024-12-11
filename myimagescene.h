@@ -19,6 +19,8 @@ public:
     explicit MyImageScene(QWidget *parent = nullptr);
 
     void SetPixmap(QPixmap pixmap, bool *samesize);
+    void SaveImage(QString filepath);
+
     double GetFitinRatio(int width, int height);
     void GetAnalysisData(analysisData *data);
     void GetAnalysisData(QRect rect, analysisData *data);
@@ -30,7 +32,6 @@ public:
     bool CreateGraphData(bool isHorizontal, bool average);
     void SetCursorColor(QColor color);
     QColor GetCursorColor();
-
 
     inline bool IsNullImage() {return currentImage.isNull();}
     inline int GetImageWidth() {return currentImage.width();}

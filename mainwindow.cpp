@@ -18,7 +18,7 @@ MainWindow::~MainWindow() {}
 
 void MainWindow::initUI()
 {
-    this->resize(1000, 700);
+    this->resize(STARTUP_WIDTH, STARTUP_HEIGHT);
 
     // setup menubar
     fileMenu = menuBar()->addMenu(tr("&File"));
@@ -208,8 +208,6 @@ void MainWindow::createActions()
 
     // disable action (no image at this moment)
     enabler(false);
-
-    saveAsAction->setEnabled(false);
 }
 void MainWindow::openImage()
 {
@@ -272,6 +270,14 @@ void MainWindow::showTitle()
 
 void MainWindow::enabler(bool enable)
 {
+    saveAsAction->setEnabled(enable);
+    zoomInAction->setEnabled(enable);
+    zoomOutAction->setEnabled(enable);
+    fitWindowAction->setEnabled(enable);
+    zoomOriginalAction->setEnabled(enable);
+    nextImageAction->setEnabled(enable);
+    previousImageAction->setEnabled(enable);
+
     histDialogAction->setEnabled(enable);
     graphDialogAction->setEnabled(enable);
     selRectangleAction->setEnabled(enable);
@@ -292,17 +298,19 @@ void MainWindow::saveAs()
     dialog.setFileMode(QFileDialog::AnyFile);
     dialog.setAcceptMode(QFileDialog::AcceptSave);
     dialog.setNameFilter(tr("Images (*.png *.bmp *.jpg)"));
-    // QStringList fileNames;
-    // if (dialog.exec()) {
-    //     fileNames = dialog.selectedFiles();
-    //     if((".+\\.(png|bmp|jpg)").exactMatch(fileNames.at(0))) {
-    //         currentImage.save(fileNames.at(0));
-    //     } else {
-    //         QMessageBox::information(this, "Information", "Save error: bad format or filename.");
-    //     }
-    // }
+    QStringList fileNames;
+    if (dialog.exec()) {
+        fileNames = dialog.selectedFiles();
+        QFileInfo fi;
+        fi.setFile(fileNames.at(0));
+        QString ext = fi.suffix().toLower();
+        if(ext == tr("png") || ext == tr("bmp")  || ext == tr("jpg")) {
+            imageScene->SaveImage(fileNames.at(0));
+        } else {
+            QMessageBox::information(this, "Information", "Save error: bad format or filename.");
+        }
+    }
 }
-
 void MainWindow::zoomIn()
 {
     if (imageScene->IsNullImage())

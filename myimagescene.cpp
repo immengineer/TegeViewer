@@ -43,6 +43,11 @@ void MyImageScene::SetPixmap(QPixmap pixmap, bool *samesize)
     emit signalUpdateRoi(roiRect);
 }
 
+void MyImageScene::SaveImage(QString filepath)
+{
+    currentImage.save(filepath);
+}
+
 double MyImageScene::GetFitinRatio(int width, int height)
 {
     double fRatioX = (double)width / (double)currentImage.width();

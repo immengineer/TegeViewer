@@ -7,6 +7,9 @@
 #define APP_NAME            "TegeViewer"
 #define APP_VERSION         "1.00"
 
+#define STARTUP_WIDTH       1000
+#define STARTUP_HEIGHT      700
+
 #define SELTYPE_RECT	    0
 #define SELTYPE_FIX		    1
 #define SELTYPE_HORZ	    2
