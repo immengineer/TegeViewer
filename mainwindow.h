@@ -21,6 +21,15 @@
 #include <QtCore>
 #include <QDebug>
 
+#include <QCameraDevice>
+#include <QCamera>
+#include <QMediaDevices>
+#include <QMediaCaptureSession>
+#include <QCameraFormat>
+#include <QVideoSink>
+#include <QVideoFrame>
+#include <QThread>
+
 #include "myimageview.h"
 #include "myimagescene.h"
 #include "define.h"
@@ -77,7 +86,10 @@ private slots:
     void selFull();
     void changeCursorColor();
     void about();
-
+    void showCameraImage();
+    void detectCamera();
+    void startCamera();
+    void stopCamera();
 
 private:
     // Menu, ToolBar, StatusBar
@@ -85,6 +97,7 @@ private:
     QMenu *viewMenu;
     QMenu *analysisMenu;
     QMenu *roiTypeMenu;
+    QMenu *cameraMenu;
     QMenu *helpMenu;
     QToolBar *fileToolBar;
     QToolBar *viewToolBar;
@@ -125,11 +138,22 @@ private:
     QAction *selFullAction;
     QAction *changeCursorColorAction;
 
+    QAction *detectCameraAction;
+    QAction *startCameraAction;
+    QAction *stopCameraAction;
+
     // Open file
     QString currentImagePath;
 
     // Drag and Drop files
     QList<QString> imageFilePathList;
     int32_t imageIndex;
+
+    // UVC Camera
+    QCamera* camera;
+    QMediaCaptureSession captureSession;
+    QString cameraDescrption;
+    QVideoSink* sink;
+    bool IsCameraStarted;
 };
 #endif // MAINWINDOW_H

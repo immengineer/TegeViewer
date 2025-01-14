@@ -5,6 +5,7 @@ MainWindow::MainWindow(QWidget *parent)
     , fileMenu(nullptr)
     , viewMenu(nullptr)
     , analysisMenu(nullptr)
+    , cameraMenu(nullptr)
     , helpMenu(nullptr)
 {
     initUI();
@@ -12,6 +13,8 @@ MainWindow::MainWindow(QWidget *parent)
     createActions();
     imageFilePathList.clear();
     imageIndex = -1;
+    cameraDescrption = "";
+    IsCameraStarted = false;
     showTitle();
 }
 MainWindow::~MainWindow() {}
@@ -24,6 +27,7 @@ void MainWindow::initUI()
     fileMenu = menuBar()->addMenu(tr("&File"));
     viewMenu = menuBar()->addMenu(tr("&View"));
     analysisMenu = menuBar()->addMenu(tr("&Analysis"));
+    cameraMenu = menuBar()->addMenu(tr("&Camera"));
     helpMenu = menuBar()->addMenu(tr("&Help"));
 
     // setup toolbar
@@ -64,6 +68,7 @@ void MainWindow::initUI()
     zoomInfoLabel = new QLabel(mainStatusBar);
     mainStatusBar->insertPermanentWidget(1, zoomInfoLabel);
 
+    // icon
     QIcon Icon = style()->standardIcon(QStyle::SP_TitleBarMenuButton);
     QApplication::setWindowIcon(Icon);
 }
@@ -144,6 +149,14 @@ void MainWindow::createActions()
     changeCursorColorAction->setStatusTip(tr("Change Cursor color (default:gray)"));
     changeCursorColorAction->setShortcut('C');
 
+    detectCameraAction = new QAction("Detect Camera", this);
+    detectCameraAction->setStatusTip(tr("Detect UVC Camera"));
+    detectCameraAction->setShortcut('D');
+    startCameraAction = new QAction("Start Camera", this);
+    startCameraAction->setStatusTip(tr("Start Camera"));
+    stopCameraAction = new QAction("Stop Camera", this);
+    stopCameraAction->setStatusTip(tr("Stop Camera"));
+
     // add actions to menu, toolbar
     fileMenu->addAction(openAction);    fileToolBar->addAction(openAction);
     fileMenu->addAction(saveAsAction);  fileToolBar->addAction(saveAsAction);
@@ -171,6 +184,10 @@ void MainWindow::createActions()
     helpMenu->addAction(aboutAction);
     helpMenu->addAction(aboutQtAction);
 
+    cameraMenu->addAction(detectCameraAction);
+    cameraMenu->addAction(startCameraAction);
+    cameraMenu->addAction(stopCameraAction);
+
     // connect the signals and slots
     connect(exitAction, SIGNAL(triggered(bool)), QApplication::instance(), SLOT(quit()));
     connect(openAction, SIGNAL(triggered(bool)), this, SLOT(openImage()));
@@ -194,6 +211,10 @@ void MainWindow::createActions()
     connect(aboutAction, &QAction::triggered, this, &MainWindow::about);
     connect(aboutQtAction, &QAction::triggered, QApplication::aboutQt);
 
+    connect(detectCameraAction, SIGNAL(triggered(bool)), this, SLOT(detectCamera()));
+    connect(startCameraAction, SIGNAL(triggered(bool)), this, SLOT(startCamera()));
+    connect(stopCameraAction, SIGNAL(triggered(bool)), this, SLOT(stopCamera()));
+
     // from Scene / View
     connect(imageScene, SIGNAL(signalPixelInfo(QString)), this, SLOT(showPixelInfo(QString)));
     connect(imageView, SIGNAL(signalDroppedURLs(QList<QUrl>)), this, SLOT(showDroppedImage(QList<QUrl>)));
@@ -208,6 +229,57 @@ void MainWindow::createActions()
 
     // disable action (no image at this moment)
     enabler(false);
+    startCameraAction->setEnabled(false);
+    stopCameraAction->setEnabled(false);
+}
+
+void MainWindow::detectCamera()
+{
+    camera = nullptr;
+    sink = nullptr;
+    cameraDescrption = "";
+    const QList<QCameraDevice> availableCameras = QMediaDevices::videoInputs();
+    if (availableCameras.size() ==  0){
+        QMessageBox::warning(this, "Warning", "No Camera found.");
+        return;
+    }
+    // Set first camera
+    camera = new QCamera(availableCameras.at(0));
+    cameraDescrption = availableCameras.at(0).description();
+    // Is Available?
+    if (!camera->isAvailable()) {
+        QMessageBox::warning(this, "Warning", cameraDescrption + " is not available.");
+        return;
+    }
+    captureSession.setCamera(camera);
+    QVideoSink* sink = new QVideoSink;
+    captureSession.setVideoSink(sink);
+
+    // camera->start();
+    connect(sink, &QVideoSink::videoFrameChanged, this, showCameraImage);
+    startCameraAction->setCheckable(true);
+    stopCameraAction->setEnabled(false);
+    startCameraAction->setEnabled(true);
+    showTitle();
+}
+
+void MainWindow::startCamera()
+{
+    openAction->setEnabled(false);
+    startCameraAction->setChecked(true);
+    startCameraAction->setEnabled(false);
+    stopCameraAction->setEnabled(true);
+    camera->start();
+}
+
+void MainWindow::stopCamera()
+{
+    openAction->setEnabled(true);
+    startCameraAction->setChecked(false);
+    startCameraAction->setEnabled(true);
+    stopCameraAction->setEnabled(false);
+    camera->stop();
+    IsCameraStarted = false;
 }
 void MainWindow::openImage()
 {
@@ -250,11 +322,15 @@ void MainWindow::showTitle()
 {
     QString sTitle = tr(APP_NAME) + " Ver" + tr(APP_VERSION);
 
+    // Camera available?
+    if (cameraDescrption != "")
+        sTitle += " : " + cameraDescrption + " ";
+
     // No image
     if (imageScene->IsNullImage()){
         setWindowTitle(sTitle);
         return;
-    }
+    }    
     // + image info
     QString sInfo = QString("  %1  %2 x %3   ").arg(currentImagePath).arg(imageScene->GetImageWidth()).arg(imageScene->GetImageHeight());
 
@@ -286,6 +362,8 @@ void MainWindow::enabler(bool enable)
     selVerticalAction->setEnabled(enable);
     selFullAction->setEnabled(enable);
     changeCursorColorAction->setEnabled(enable);
+
+    detectCameraAction->setEnabled(true);
 }
 void MainWindow::saveAs()
 {
@@ -457,17 +535,29 @@ void MainWindow::changeCursorColor()
 }
 void MainWindow::about()
 {
-    // // https://www.gnu.org/licenses/gpl-howto.html
-    // QMessageBox::about(this, tr("About TegeViewer"),
-    //     tr("ImageVierwer application with Qt.\n\n") +
-    //     tr("TegeViewer is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.\n\n") +
-    //     tr("TegeViewer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.\n\n") +
-    //     tr("You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>."));
-
     QMessageBox::about(this, tr("About TegeViewer"),
         tr("ImageVierwer application with Qt.\n\n") +
         tr("Copyright (c) 2024 mengineer\n") +
         tr("This software is released under the MIT License."));
+}
+
+void MainWindow::showCameraImage()
+{
+    QPixmap pixmap;
+    QVideoFrame frame = captureSession.videoSink()->videoFrame();
+    if (frame.isValid()){
+        pixmap = QPixmap::fromImage(frame.toImage());
+        bool isSameSize;
+        imageScene->SetPixmap(pixmap, &isSameSize);
+    }
+    if (!IsCameraStarted) {
+        // Init View
+        imageView->resetTransform();
+        imageView->InitZoomLevel();
+        imageView->setSceneRect(pixmap.rect());
+        enabler(true);
+        IsCameraStarted = true;
+    }
 }
 
 
