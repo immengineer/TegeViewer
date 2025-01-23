@@ -9,8 +9,11 @@
 #include <QGraphicsSceneDragDropEvent>
 #include <QMimeData>
 #include <QVector>
+#include <QVideoFrame>
+#include <QTimer>
 
 #include "define.h"
+#include "utility.h"
 
 class MyImageScene : public QGraphicsScene
 {
@@ -48,13 +51,17 @@ public:
     QVector<int> vGraphX;
     QVector<QRgb> vGraphY;
 
+    // UVCCamera
+    void SetFrameData(QVideoFrame* frame);
+    void SetTimer(bool start);
+
 signals:
     void signalPixelInfo(QString info);
     void signalUpdateRoi(QRect rect);
 
-public slots:
+private slots:
     void changeRoiType(int type);
-
+    void updateRoi();
 
 protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *event);
@@ -69,6 +76,7 @@ private:
     QPoint startPoint, endPoint;
     QImage currentImage;
     QColor cursorColor;
+    QTimer *timer;
 
     int *pHistBuff[NUM_COLOR];
 

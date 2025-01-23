@@ -25,6 +25,11 @@ void InfoDock::ActivateDock(int roitype)
     ui->pushButtonCenter100->setEnabled(true);      // なぜか無効表示になるので
     checkRoiRadio(roitype);
 }
+
+int InfoDock::GetRoiType()
+{
+    return ui->buttonRoiGroup->checkedId();
+}
 void InfoDock::initUI()
 {
     // set radio id >> roi selectionType

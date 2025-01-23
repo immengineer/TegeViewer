@@ -10,10 +10,15 @@ MyImageScene::MyImageScene(QWidget *parent) : QGraphicsScene(parent)
 {   
     zoomPercent = 100;
     allocBuffer();
+    timer = new QTimer(this);
+    timer->setInterval(100);
+    connect(timer, &QTimer::timeout, this, &MyImageScene::updateRoi);
+    timer->start();
 }
 
 void MyImageScene::SetPixmap(QPixmap pixmap, bool *samesize)
 {
+    timer->stop();
     *samesize = false;
     if (IsNullImage()){
         startPoint.setX(-1);
@@ -46,6 +51,35 @@ void MyImageScene::SetPixmap(QPixmap pixmap, bool *samesize)
 void MyImageScene::SaveImage(QString filepath)
 {
     currentImage.save(filepath);
+}
+
+void MyImageScene::SetFrameData(QVideoFrame* frame)
+{
+    if (IsNullImage() || (currentImage.size() != frame->size())){
+        startPoint.setX(-1);
+        startPoint.setY(-1);
+        endPoint.setX(-1);
+        endPoint.setY(-1);
+        freeBuffer();
+        allocBuffer();
+        roiType = SELTYPE_RECT;
+    }
+    clear();
+    currentImage = frame->toImage();
+    QPixmap pixmap = QPixmap::fromImage(currentImage);
+    addPixmap(pixmap);
+    g_pUtil->CalcDispRate();
+    roiRect = getSelectedArea();
+    drawCursor();
+}
+
+void MyImageScene::SetTimer(bool start)
+{
+    if (start)
+        timer->start();
+    else
+        timer->stop();
+
 }
 
 double MyImageScene::GetFitinRatio(int width, int height)
@@ -286,6 +320,12 @@ void MyImageScene::changeRoiType(int type)
     roiRect = getSelectedArea();
     drawCursor();
     emit signalUpdateRoi(roiRect);
+}
+
+void MyImageScene::updateRoi()
+{
+    if (!IsNullImage())
+        emit signalUpdateRoi(roiRect);
 }
 void MyImageScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {

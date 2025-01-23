@@ -20,21 +20,16 @@
 #include <QtWidgets>
 #include <QtCore>
 #include <QDebug>
-
-#include <QCameraDevice>
-#include <QCamera>
-#include <QMediaDevices>
-#include <QMediaCaptureSession>
-#include <QCameraFormat>
-#include <QVideoSink>
-#include <QVideoFrame>
-#include <QThread>
+#include <QTimer>
+#include <QDateTime>
 
 #include "myimageview.h"
 #include "myimagescene.h"
 #include "define.h"
 #include "graphdialog.h"
 #include "infodock.h"
+#include "uvccamera.h"
+#include "utility.h"
 
 class MainWindow : public QMainWindow
 {
@@ -58,7 +53,6 @@ private:
     void initUI();
     void createDock();
     void createActions();
-
     void showImage(QString path);
     void showTitle();
     void enabler(bool enable);
@@ -86,10 +80,11 @@ private slots:
     void selFull();
     void changeCursorColor();
     void about();
-    void showCameraImage();
+    void showCameraImage(QVideoFrame* frame);
     void detectCamera();
     void startCamera();
     void stopCamera();
+    void dispFps();
 
 private:
     // Menu, ToolBar, StatusBar
@@ -102,9 +97,11 @@ private:
     QToolBar *fileToolBar;
     QToolBar *viewToolBar;
     QToolBar *analysisToolBar;
+    QToolBar *cameraToolBar;
     QStatusBar *mainStatusBar;
     QLabel *imageInfoLabel;
     QLabel *zoomInfoLabel;
+    QLabel *camInfoLabel;
 
     // Customize QGraphicsView QGraphicsScene
     MyImageScene *imageScene;
@@ -150,10 +147,10 @@ private:
     int32_t imageIndex;
 
     // UVC Camera
-    QCamera* camera;
-    QMediaCaptureSession captureSession;
+    UVCCamera *uvcCamera;
     QString cameraDescrption;
-    QVideoSink* sink;
-    bool IsCameraStarted;
+    QString pixelFormat;
+    volatile bool IsCameraStarted;
+    QTimer *fpsTimer;
 };
 #endif // MAINWINDOW_H

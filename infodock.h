@@ -20,6 +20,7 @@ public:
     explicit InfoDock(QWidget *parent = nullptr);
     ~InfoDock();
     void ActivateDock(int roitype);
+    int GetRoiType();
 
 signals:
     void signalChangeRoiType(int type);
