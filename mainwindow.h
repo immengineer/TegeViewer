@@ -150,7 +150,7 @@ private:
     UVCCamera *uvcCamera;
     QString cameraDescrption;
     QString pixelFormat;
-    volatile bool IsCameraStarted;
+    // volatile bool IsCameraStarted;
     QTimer *fpsTimer;
 };
 #endif // MAINWINDOW_H

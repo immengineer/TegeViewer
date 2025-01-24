@@ -40,6 +40,7 @@ public:
     inline int GetImageWidth() {return currentImage.width();}
     inline int GetImageHeight() {return currentImage.height();}
     inline bool IsInvalidROI() { return roiRect.width() == 0 && roiRect.height() == 0; }
+    inline QRect GetImageRect() { return currentImage.rect();}
 
     int roiType;
     QRect roiRect;
@@ -53,7 +54,6 @@ public:
 
     // UVCCamera
     void SetFrameData(QVideoFrame* frame);
-    void SetTimer(bool start);
 
 signals:
     void signalPixelInfo(QString info);

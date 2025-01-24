@@ -8,6 +8,7 @@ Utility::Utility()
     frameRate = 0.0;
     dispCount = 0;
     dispRate = 0.0;
+    isCameraStarted = false;
 }
 
 void Utility::InitTimer()
@@ -38,4 +39,9 @@ void Utility::CalcDispRate()
         dispCount = 0;
         timerDispRate.restart();
     }
+}
+
+void Utility::SetCameraStatus(bool start)
+{
+    isCameraStarted = start;
 }

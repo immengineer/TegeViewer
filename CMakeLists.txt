@@ -34,6 +34,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         infodock.h infodock.cpp infodock.ui
         uvccamera.h uvccamera.cpp
         utility.h utility.cpp
+        resouce.qrc
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET TegeViewer APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

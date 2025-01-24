@@ -18,7 +18,6 @@ MyImageScene::MyImageScene(QWidget *parent) : QGraphicsScene(parent)
 
 void MyImageScene::SetPixmap(QPixmap pixmap, bool *samesize)
 {
-    timer->stop();
     *samesize = false;
     if (IsNullImage()){
         startPoint.setX(-1);
@@ -72,16 +71,6 @@ void MyImageScene::SetFrameData(QVideoFrame* frame)
     roiRect = getSelectedArea();
     drawCursor();
 }
-
-void MyImageScene::SetTimer(bool start)
-{
-    if (start)
-        timer->start();
-    else
-        timer->stop();
-
-}
-
 double MyImageScene::GetFitinRatio(int width, int height)
 {
     double fRatioX = (double)width / (double)currentImage.width();
@@ -324,7 +313,7 @@ void MyImageScene::changeRoiType(int type)
 
 void MyImageScene::updateRoi()
 {
-    if (!IsNullImage())
+    if (g_pUtil->IsCameraStarted())
         emit signalUpdateRoi(roiRect);
 }
 void MyImageScene::mousePressEvent(QGraphicsSceneMouseEvent *event)

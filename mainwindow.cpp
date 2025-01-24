@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
     uvcCamera = new UVCCamera(this);
     fpsTimer = new QTimer(this);
     fpsTimer->setInterval(500);
+    fpsTimer->start();
 
     g_pUtil = new Utility();
 
@@ -22,13 +23,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     cameraDescrption = "";
     pixelFormat = "";
-    IsCameraStarted = false;
     showTitle();
 }
 MainWindow::~MainWindow()
 {
-    // cameraTimer.stop();
-    // threadTimer.terminate();
+
 }
 
 void MainWindow::initUI()
@@ -84,8 +83,9 @@ void MainWindow::initUI()
     mainStatusBar->insertPermanentWidget(2, zoomInfoLabel);
 
     // icon
-    QIcon Icon = style()->standardIcon(QStyle::SP_TitleBarMenuButton);
-    QApplication::setWindowIcon(Icon);
+    // QIcon Icon = style()->standardIcon(QStyle::SP_TitleBarMenuButton);
+    // QApplication::setWindowIcon(Icon);
+    QApplication::setWindowIcon(QIcon(":/icon/Logo.ico"));
 }
 
 void MainWindow::createDock()
@@ -166,6 +166,7 @@ void MainWindow::createActions()
 
     detectCameraAction = new QAction("Detect Camera", this);
     detectCameraAction->setStatusTip(tr("Detect UVC Camera"));
+    detectCameraAction->setIcon(QIcon::fromTheme(("camera-video")));
     detectCameraAction->setShortcut('D');
     startCameraAction = new QAction("Start Camera", this);
     startCameraAction->setIcon(QIcon::fromTheme(("media-playback-start")));
@@ -252,23 +253,25 @@ void MainWindow::createActions()
 
     // disable action (no image at this moment)
     enabler(false);
+    detectCameraAction->setEnabled(true);
     startCameraAction->setEnabled(false);
     stopCameraAction->setEnabled(false);
 }
 void MainWindow::detectCamera()
 {
+    g_pUtil->SetCameraStatus(false);
     if (!uvcCamera->InitQCamera()) {
         QMessageBox::warning(this, "Warning", "No available camera found.");
         return;
     }
     cameraDescrption = uvcCamera->CameraDescription;
-
     startCameraAction->setCheckable(true);
     stopCameraAction->setEnabled(false);
     startCameraAction->setEnabled(true);
 
     imageView->resetTransform();
     imageView->InitZoomLevel();
+
     showTitle();
 }
 
@@ -277,37 +280,36 @@ void MainWindow::startCamera()
     g_pUtil->InitTimer();
     openAction->setEnabled(false);
     saveAsAction->setEnabled(false);
+    detectCameraAction->setEnabled(false);
     startCameraAction->setChecked(true);
     startCameraAction->setEnabled(false);
     stopCameraAction->setEnabled(true);
+
     this->setCursor(Qt::WaitCursor);
     uvcCamera->StartQCamera();
     imageScene->startTimer(true);
-    fpsTimer->start();
 }
 
 void MainWindow::stopCamera()
 {
     openAction->setEnabled(true);
     saveAsAction->setEnabled(true);
+    detectCameraAction->setEnabled(true);
     startCameraAction->setChecked(false);
     startCameraAction->setEnabled(true);
     stopCameraAction->setEnabled(false);
     this->setCursor(Qt::ArrowCursor);
     uvcCamera->StopQCamera();
     imageScene->startTimer(false);
-    IsCameraStarted = false;
-    fpsTimer->stop();
+    g_pUtil->SetCameraStatus(false);
 }
 
 void MainWindow::dispFps()
 {
-    if (IsCameraStarted) {
+    if (g_pUtil->IsCameraStarted()) {
         QString framerate = QString::number(g_pUtil->GetFrameRateAvrg(), 'f', 1);
         QString disprate = QString::number(g_pUtil->GetDispRateAvrg(), 'f', 1);
-        camInfoLabel->setText("F:" + framerate + " D:" + disprate);
-        // QDateTime dateTime = QDateTime::currentDateTime();
-        // camInfoLabel->setText(dateTime.time().toString("HH:mm:ss"));
+        camInfoLabel->setText("F:" + framerate + " D:" + disprate + "  ");
     }
 }
 void MainWindow::openImage()
@@ -363,8 +365,8 @@ void MainWindow::showTitle()
     // + image info
     QString sInfo = QString("  %1  %2 x %3   ").arg(currentImagePath).arg(imageScene->GetImageWidth()).arg(imageScene->GetImageHeight());
 
-    if (IsCameraStarted) {
-        setWindowTitle(sTitle + sInfo + ": " + pixelFormat);
+    if (g_pUtil->IsCameraStarted()) {
+        setWindowTitle(sTitle + ": " + pixelFormat);
     }
     else {
         QLocale locale;
@@ -396,8 +398,6 @@ void MainWindow::enabler(bool enable)
     selVerticalAction->setEnabled(enable);
     selFullAction->setEnabled(enable);
     changeCursorColorAction->setEnabled(enable);
-
-    detectCameraAction->setEnabled(true);
 }
 void MainWindow::saveAs()
 {
@@ -571,7 +571,7 @@ void MainWindow::about()
 {
     QMessageBox::about(this, tr("About TegeViewer"),
         tr("ImageVierwer application with Qt.\n\n") +
-        tr("Copyright (c) 2024-2025 mengineer\n") +
+        tr("Copyright (c) 2024-2025 mengineer\n\n") +
         tr("This software is released under the MIT License.\n") +
         tr("https://opensource.org/licenses/mit-license.php"));
 }
@@ -585,28 +585,19 @@ void MainWindow::showCameraImage(QVideoFrame* frame)
 
     imageScene->SetFrameData(frame);
 
-    if (!IsCameraStarted) {       
+    if (!g_pUtil->IsCameraStarted()) {
         this->setCursor(Qt::ArrowCursor);
-        IsCameraStarted = true;
+        g_pUtil->SetCameraStatus(true);
         pixelFormat = QVideoFrameFormat::pixelFormatToString(frame->pixelFormat());
         showTitle();
 
-        zoomInAction->setEnabled(true);
-        zoomOutAction->setEnabled(true);
-        fitWindowAction->setEnabled(true);
-        zoomOriginalAction->setEnabled(true);
+        enabler(true);
 
-        histDialogAction->setEnabled(true);
-        graphDialogAction->setEnabled(true);
-        selRectangleAction->setEnabled(true);
-        selFixedAction->setEnabled(true);
-        selHorizontalAction->setEnabled(true);
-        selVerticalAction->setEnabled(true);
-        selFullAction->setEnabled(true);
         changeCursorColorAction->setEnabled(true);
         if (sizeChanged) {
             imageView->resetTransform();
             imageView->InitZoomLevel();
+            imageView->setSceneRect(imageScene->GetImageRect());
             fitWindow();
         }
     }
