@@ -363,12 +363,12 @@ void MainWindow::showTitle()
         return;
     }    
     // + image info
-    QString sInfo = QString("  %1  %2 x %3   ").arg(currentImagePath).arg(imageScene->GetImageWidth()).arg(imageScene->GetImageHeight());
-
     if (g_pUtil->IsCameraStarted()) {
-        setWindowTitle(sTitle + ": " + pixelFormat);
+        QString sInfo = QString("  %1 x %2  ").arg(imageScene->GetImageWidth()).arg(imageScene->GetImageHeight());
+        setWindowTitle(sTitle + ": " + pixelFormat + sInfo);
     }
     else {
+        QString sInfo = QString("  %1  %2 x %3   ").arg(currentImagePath).arg(imageScene->GetImageWidth()).arg(imageScene->GetImageHeight());
         QLocale locale;
         sInfo += locale.toString(QFile(currentImagePath).size()) + " Bytes";
 

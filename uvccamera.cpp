@@ -27,13 +27,11 @@ bool UVCCamera::InitQCamera()
 void UVCCamera::StartQCamera()
 {
     camera->start();
-    qDebug() << "startCamera";
 }
 
 void UVCCamera::StopQCamera()
 {
     camera->stop();
-    qDebug() << "stopCamera";
 }
 void UVCCamera::getFrame()
 {
