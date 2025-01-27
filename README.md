@@ -8,7 +8,7 @@ TegeViewer
 - 指定エリア（ROI）内平均値、標準偏差等を解析
 - 指定エリア（ROI）の画像レベルやヒストグラム表示
 - 表示データをクリップボードにコピー（TAB区切りテキスト）
-
+- Ver1.10より、UVCカメラ取込対応（ひとまずWindowsのみ）
 ## 動作環境
 - Winodws10 / Windows11
 - Ubuntu等Linux
