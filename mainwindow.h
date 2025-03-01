@@ -30,6 +30,7 @@
 #include "infodock.h"
 #include "uvccamera.h"
 #include "utility.h"
+#include "cameracontroldialog.h"
 
 class MainWindow : public QMainWindow
 {
@@ -73,6 +74,7 @@ private slots:
     void showNextImage();
     void showHistogramDialog();
     void showGraphDialog();
+    void showCameraControlDialog();
     void selRectangle();
     void selFixed();
     void selHorizontal();
@@ -85,6 +87,7 @@ private slots:
     void startCamera();
     void stopCamera();
     void dispFps();
+
 
 private:
     // Menu, ToolBar, StatusBar
@@ -127,6 +130,7 @@ private:
     QAction *graphDialogAction;
     QAction *aboutAction;
     QAction *aboutQtAction;
+    QAction *aboutQCameraControlAction;
 
     QAction *selRectangleAction;
     QAction *selFixedAction;
@@ -148,6 +152,8 @@ private:
 
     // UVC Camera
     UVCCamera *uvcCamera;
+    CameraControlDialog *camControl;
+
     QString cameraDescrption;
     QString pixelFormat;
     // volatile bool IsCameraStarted;

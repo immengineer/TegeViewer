@@ -9,6 +9,7 @@ MainWindow::MainWindow(QWidget *parent)
     , helpMenu(nullptr)
 {
     uvcCamera = new UVCCamera(this);
+    camControl = new CameraControlDialog(this);
     fpsTimer = new QTimer(this);
     fpsTimer->setInterval(500);
     fpsTimer->start();
@@ -153,6 +154,8 @@ void MainWindow::createActions()
     aboutAction->setStatusTip(tr("About TegeViewer"));
     aboutQtAction = new QAction("AboutQt", this);
     aboutQtAction->setStatusTip(tr("About Qt"));
+    aboutQCameraControlAction = new QAction("About QCameraControl", this);
+    aboutQCameraControlAction->setStatusTip(tr("About QCameraControl in CameraDialog"));
 
     selRectangleAction = new QAction("Rectangle", this);    selRectangleAction->setShortcut('R');
     selFixedAction = new QAction("FixedSize", this);
@@ -164,8 +167,8 @@ void MainWindow::createActions()
     changeCursorColorAction->setStatusTip(tr("Change Cursor color (default:gray)"));
     changeCursorColorAction->setShortcut('C');
 
-    detectCameraAction = new QAction("Detect Camera", this);
-    detectCameraAction->setStatusTip(tr("Detect UVC Camera"));
+    detectCameraAction = new QAction("Show Camera Dialog", this);
+    detectCameraAction->setStatusTip(tr("Show / Hide UVC Camera Dialog"));
     detectCameraAction->setIcon(QIcon::fromTheme(("camera-video")));
     detectCameraAction->setShortcut('D');
     startCameraAction = new QAction("Start Camera", this);
@@ -201,6 +204,7 @@ void MainWindow::createActions()
 
     helpMenu->addAction(aboutAction);
     helpMenu->addAction(aboutQtAction);
+    helpMenu->addAction(aboutQCameraControlAction);
 
     cameraMenu->addAction(detectCameraAction);
     cameraMenu->addAction(startCameraAction);   cameraToolBar->addAction(startCameraAction);
@@ -228,8 +232,12 @@ void MainWindow::createActions()
 
     connect(aboutAction, &QAction::triggered, this, &MainWindow::about);
     connect(aboutQtAction, &QAction::triggered, QApplication::aboutQt);
+    connect(aboutQCameraControlAction, &QAction::triggered,this, []() {
+        QDesktopServices::openUrl(QUrl("https://github.com/m-riley04/QtCameraControls"));
+    });
 
-    connect(detectCameraAction, SIGNAL(triggered(bool)), this, SLOT(detectCamera()));
+    // connect(detectCameraAction, SIGNAL(triggered(bool)), this, SLOT(detectCamera()));
+    connect(detectCameraAction, SIGNAL(triggered(bool)), this, SLOT(showCameraControlDialog()));
     connect(startCameraAction, SIGNAL(triggered(bool)), this, SLOT(startCamera()));
     connect(stopCameraAction, SIGNAL(triggered(bool)), this, SLOT(stopCamera()));
 
@@ -246,10 +254,14 @@ void MainWindow::createActions()
     connect(infoDock, SIGNAL(signalChangeRoiType(int)), dialogGraph, SLOT(changeRoiType(int)));
 
     // from UVCCamera
-    connect(uvcCamera, SIGNAL(newFrame(QVideoFrame*)), this, SLOT(showCameraImage(QVideoFrame*)));
+    // connect(uvcCamera, SIGNAL(newFrame(QVideoFrame*)), this, SLOT(showCameraImage(QVideoFrame*)));
 
     // fps timer
     connect(fpsTimer, &QTimer::timeout, this, &MainWindow::dispFps);
+
+    // from cameracontroldialog
+    connect(camControl, SIGNAL(cameraIsReady()), this, SLOT(detectCamera()));
+    connect(camControl, SIGNAL(newFrame(QVideoFrame*)), this, SLOT(showCameraImage(QVideoFrame*)));
 
     // disable action (no image at this moment)
     enabler(false);
@@ -259,12 +271,13 @@ void MainWindow::createActions()
 }
 void MainWindow::detectCamera()
 {
-    g_pUtil->SetCameraStatus(false);
-    if (!uvcCamera->InitQCamera()) {
-        QMessageBox::warning(this, "Warning", "No available camera found.");
-        return;
-    }
-    cameraDescrption = uvcCamera->CameraDescription;
+    // g_pUtil->SetCameraStatus(false);
+    // if (!uvcCamera->InitQCamera()) {
+    //     QMessageBox::warning(this, "Warning", "No available camera found.");
+    //     return;
+    // }
+    // cameraDescrption = uvcCamera->CameraDescription;
+
     startCameraAction->setCheckable(true);
     stopCameraAction->setEnabled(false);
     startCameraAction->setEnabled(true);
@@ -286,7 +299,8 @@ void MainWindow::startCamera()
     stopCameraAction->setEnabled(true);
 
     this->setCursor(Qt::WaitCursor);
-    uvcCamera->StartQCamera();
+    //uvcCamera->StartQCamera();
+    camControl->StartQCamera();
     imageScene->startTimer(true);
 }
 
@@ -299,7 +313,8 @@ void MainWindow::stopCamera()
     startCameraAction->setEnabled(true);
     stopCameraAction->setEnabled(false);
     this->setCursor(Qt::ArrowCursor);
-    uvcCamera->StopQCamera();
+    // uvcCamera->StopQCamera();
+    camControl->StopQCamera();
     imageScene->startTimer(false);
     g_pUtil->SetCameraStatus(false);
 }
@@ -529,6 +544,14 @@ void MainWindow::showGraphDialog()
         dialogGraph->hide();
     else
         dialogGraph->show();
+}
+
+void MainWindow::showCameraControlDialog()
+{
+    if (camControl->IsShown())
+        camControl->hide();
+    else
+        camControl->show();
 }
 
 void MainWindow::selRectangle()

@@ -35,6 +35,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         uvccamera.h uvccamera.cpp
         utility.h utility.cpp
         resouce.qrc
+        cameracontroldialog.h cameracontroldialog.cpp cameracontroldialog.ui
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET TegeViewer APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -54,12 +55,18 @@ else()
     endif()
 endif()
 
+# # for OpenCV
+set(OpenCV_DIR E:\\Software\\opencv_mingw)
+find_package(OpenCV REQUIRED)
+set(CMAKE_PREFIX_PATH ${OpenCV_DIR})
+INCLUDE_DIRECTORIES( ${OpenCV_INCLUDE_DIRS} )
+
 target_link_libraries(TegeViewer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
 target_link_libraries(TegeViewer PRIVATE Qt6::Core)
 target_link_libraries(TegeViewer PRIVATE Qt6::Multimedia)
 target_link_libraries(TegeViewer PRIVATE Qt6::MultimediaWidgets)
-
+target_link_libraries(TegeViewer PRIVATE ${OpenCV_LIBRARIES})
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.
