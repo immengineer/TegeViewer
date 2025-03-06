@@ -80,7 +80,7 @@
       <rect>
        <x>10</x>
        <y>40</y>
-       <width>70</width>
+       <width>41</width>
        <height>16</height>
       </rect>
      </property>
@@ -589,9 +589,208 @@
       <string>Init VideoCapture</string>
      </property>
     </widget>
+    <widget class="QLabel" name="labelCapture">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>40</y>
+       <width>110</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>VideoCapture Index</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboVideoCapture">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>40</y>
+       <width>121</width>
+       <height>23</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBoxCaptureSetting">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>70</y>
+       <width>251</width>
+       <height>111</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>VideoCapture Setting</string>
+     </property>
+     <widget class="QLabel" name="labelWidth">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>50</y>
+        <width>40</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Width</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEditWidth">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>50</y>
+        <width>50</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEditHeight">
+      <property name="geometry">
+       <rect>
+        <x>180</x>
+        <y>50</y>
+        <width>50</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="labelHeight">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>50</y>
+        <width>40</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Height</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEditFps">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>20</y>
+        <width>40</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="labelFps">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>20</y>
+        <width>70</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Fps / Format</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEditFormat">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>20</y>
+        <width>80</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButtonGetParam">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>80</y>
+        <width>90</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Get property</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButtonControl">
+      <property name="geometry">
+       <rect>
+        <x>110</x>
+        <y>80</y>
+        <width>121</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Camera control</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QPushButton" name="pushButtonClear">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>480</y>
+       <width>100</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Clear</string>
+     </property>
+    </widget>
+    <widget class="QTextBrowser" name="textBrowser">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>190</y>
+       <width>250</width>
+       <height>280</height>
+      </rect>
+     </property>
+     <property name="lineWrapMode">
+      <enum>QTextEdit::LineWrapMode::WidgetWidth</enum>
+     </property>
+    </widget>
    </widget>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>lineEditFps</tabstop>
+  <tabstop>lineEditFormat</tabstop>
+  <tabstop>lineEditWidth</tabstop>
+  <tabstop>lineEditHeight</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>dropdownWhiteBalanceMode</tabstop>
+  <tabstop>buttonFFMPEG</tabstop>
+  <tabstop>sliderManualIsoSensitivity</tabstop>
+  <tabstop>dropdownFlashMode</tabstop>
+  <tabstop>sliderManualExposureTime</tabstop>
+  <tabstop>checkboxAutoExposureTime</tabstop>
+  <tabstop>checkboxAutoIsoSensitivity</tabstop>
+  <tabstop>dropdownTorchMode</tabstop>
+  <tabstop>dropdownExposureMode</tabstop>
+  <tabstop>sliderExposureComp</tabstop>
+  <tabstop>sliderColorTemp</tabstop>
+  <tabstop>sliderFocusDistance</tabstop>
+  <tabstop>dropdownFocusMode</tabstop>
+  <tabstop>sliderZoom</tabstop>
+  <tabstop>sliderZoomRate</tabstop>
+  <tabstop>pushButtonInitOpenCVCapture</tabstop>
+  <tabstop>comboVideoCapture</tabstop>
+  <tabstop>comboBoxFormats</tabstop>
+  <tabstop>comboVideoDevices</tabstop>
+  <tabstop>tabWidgetControl</tabstop>
+  <tabstop>pushButtonDetectCamera</tabstop>
+  <tabstop>pushButtonGetParam</tabstop>
+  <tabstop>pushButtonControl</tabstop>
+  <tabstop>pushButtonClear</tabstop>
+  <tabstop>textBrowser</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

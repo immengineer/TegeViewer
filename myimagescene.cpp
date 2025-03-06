@@ -44,6 +44,7 @@ void MyImageScene::SetPixmap(QPixmap pixmap, bool *samesize)
     currentImage = pixmap.toImage();
     roiRect = getSelectedArea();
     drawCursor();
+    qDebug() << "QImageFormat" << currentImage.format();
     emit signalUpdateRoi(roiRect);
 }
 
@@ -65,9 +66,28 @@ void MyImageScene::SetFrameData(QVideoFrame* frame)
     }
     clear();
     currentImage = frame->toImage();
-    QPixmap pixmap = QPixmap::fromImage(currentImage);
-    addPixmap(pixmap);
-    g_pUtil->CalcDispRate();
+    addPixmap(QPixmap::fromImage(currentImage));
+    // g_pUtil->CalcDispRate();
+    roiRect = getSelectedArea();
+    drawCursor();
+}
+
+void MyImageScene::SetQImage(QImage image)
+{
+    if (IsNullImage() || (currentImage.size() != image.size())){
+        startPoint.setX(-1);
+        startPoint.setY(-1);
+        endPoint.setX(-1);
+        endPoint.setY(-1);
+        freeBuffer();
+        allocBuffer();
+        roiType = SELTYPE_RECT;
+    }
+    clear();
+    addPixmap(QPixmap::fromImage(image));
+    currentImage = image.convertToFormat(QImage::Format_RGB32);
+
+    // g_pUtil->CalcDispRate();
     roiRect = getSelectedArea();
     drawCursor();
 }
@@ -166,6 +186,7 @@ void MyImageScene::GetAnalysisData(QRect rect, analysisData *data)
         if (data->sd[color] != 0)
             data->sn[color] = 20.0 * log10((double)(HIST_NUM - 1) / data->sd[color]);
     }
+    g_pUtil->CalcDispRate();
 }
 
 bool MyImageScene::CreateHistogramData()

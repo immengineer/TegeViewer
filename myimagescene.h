@@ -54,6 +54,8 @@ public:
 
     // UVCCamera
     void SetFrameData(QVideoFrame* frame);
+    // CvVideoCapture
+    void SetQImage(QImage image);
 
 signals:
     void signalPixelInfo(QString info);
@@ -77,7 +79,6 @@ private:
     QImage currentImage;
     QColor cursorColor;
     QTimer *timer;
-
     int *pHistBuff[NUM_COLOR];
 
 };

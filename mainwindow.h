@@ -23,14 +23,16 @@
 #include <QTimer>
 #include <QDateTime>
 
+#include <opencv2/opencv.hpp>
+
 #include "myimageview.h"
 #include "myimagescene.h"
 #include "define.h"
 #include "graphdialog.h"
 #include "infodock.h"
-#include "uvccamera.h"
 #include "utility.h"
 #include "cameracontroldialog.h"
+#include "cvvideocapture.h"
 
 class MainWindow : public QMainWindow
 {
@@ -83,11 +85,11 @@ private slots:
     void changeCursorColor();
     void about();
     void showCameraImage(QVideoFrame* frame);
-    void detectCamera();
+    void detectCamera(bool IsReady);
     void startCamera();
     void stopCamera();
     void dispFps();
-
+    void showCvCaptureImage();
 
 private:
     // Menu, ToolBar, StatusBar
@@ -151,12 +153,14 @@ private:
     int32_t imageIndex;
 
     // UVC Camera
-    UVCCamera *uvcCamera;
     CameraControlDialog *camControl;
 
     QString cameraDescrption;
     QString pixelFormat;
     // volatile bool IsCameraStarted;
     QTimer *fpsTimer;
+
+    // OpenCV VideoCapture
+    CvVideoCapture *videoCapture;
 };
 #endif // MAINWINDOW_H

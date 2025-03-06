@@ -105,13 +105,16 @@ QMap<QString, QCamera::FocusMode> focusModeMap{
     {"Infinity",        QCamera::FocusMode::FocusModeInfinity },
     {"Manual",          QCamera::FocusMode::FocusModeManual }
 };
-CameraControlDialog::CameraControlDialog(QWidget *parent)
+CameraControlDialog::CameraControlDialog(QWidget *parent, CvVideoCapture *capture)
     : QDialog(parent)
     , ui(new Ui::CameraControlDialog)
     , isShown(false)
+    , isQCameraReady(false)
 {
+    videoCap = capture;
     ui->setupUi(this);
     ui->tabWidget->setEnabled(false);
+    ui->groupBoxCaptureSetting->setEnabled(false);
     setFixedSize(300, 560);
     createActions();
 }
@@ -120,10 +123,37 @@ CameraControlDialog::~CameraControlDialog()
 {
     delete ui;
 }
+void CameraControlDialog::StartQCamera()
+{
+    camera->start();
+    ui->pushButtonDetectCamera->setEnabled(false);
+    ui->comboVideoDevices->setEnabled(false);
+    ui->comboBoxFormats->setEnabled(false);
+}
+void CameraControlDialog::StopQCamera()
+{
+    camera->stop();
+    ui->comboVideoDevices->setEnabled(true);
+    ui->comboBoxFormats->setEnabled(true);
+    ui->pushButtonDetectCamera->setEnabled(true);
+}
 
+void CameraControlDialog::changeSetting()
+{
+
+}
+void CameraControlDialog::getFrame()
+{
+    QVideoFrame frame = captureSession.videoSink()->videoFrame();
+    if (frame.isValid()) {
+        emit newFrame(&frame);
+        g_pUtil->CalcFrameRate();
+    }
+}
 void CameraControlDialog::detectQCamera()
 {
-    qDebug() << "comboVideoDevices" << ui->comboVideoDevices->count();
+    disableVideoCapture();
+
     ui->comboVideoDevices->blockSignals(true);
     ui->comboVideoDevices->clear();
     cameraDevices.clear();
@@ -193,42 +223,6 @@ void CameraControlDialog::openFFMPEGSettings()
     args << "-f" << "dshow" << "-show_video_device_dialog" << "true" << "-i" << "video=" + this->CameraDescription;
     process->start("ffmpeg", args);
 }
-
-void CameraControlDialog::StartQCamera()
-{
-    camera->start();
-    ui->pushButtonDetectCamera->setEnabled(false);
-    ui->comboVideoDevices->setEnabled(false);
-    ui->comboBoxFormats->setEnabled(false);
-}
-
-void CameraControlDialog::StopQCamera()
-{
-    camera->stop();
-    ui->comboVideoDevices->setEnabled(true);
-    ui->comboBoxFormats->setEnabled(true);
-    ui->pushButtonDetectCamera->setEnabled(true);
-}
-
-void CameraControlDialog::getFrame()
-{
-    QVideoFrame frame = captureSession.videoSink()->videoFrame();
-    if (frame.isValid()) {
-        emit newFrame(&frame);
-        g_pUtil->CalcFrameRate();
-    }
-}
-
-void CameraControlDialog::createActions()
-{
-    connect(ui->pushButtonDetectCamera, &QPushButton::clicked, this, &CameraControlDialog::detectQCamera);
-    connect(ui->comboBoxFormats, &QComboBox::currentIndexChanged, this, &CameraControlDialog::changeFormat);
-    connect(ui->comboVideoDevices, SIGNAL(currentIndexChanged(int)), this, SLOT(openCamera(int)));
-    connect(ui->tabWidgetControl, &QTabWidget::currentChanged, this, &CameraControlDialog::changeSetting);
-
-    connect(ui->pushButtonInitOpenCVCapture, &QPushButton::clicked, this, &CameraControlDialog::initOpenCVCaptute);
-}
-
 bool CameraControlDialog::openCamera(int index /* = 0 */)
 {
     ui->tabWidget->setDisabled(true);
@@ -236,25 +230,27 @@ bool CameraControlDialog::openCamera(int index /* = 0 */)
     camera = nullptr;
     sink = nullptr;
     CameraDescription = "";
+    isQCameraReady = false;
+    camera = new QCamera(cameraDevices.at(index)); 
 
-    camera = new QCamera(cameraDevices.at(index));
-
-    if (!camera->isAvailable())
+    if (!camera->isAvailable()) {
+        QMessageBox::warning(this, "Warning", "Failed to open QCamera : " + cameraDevices.at(index).description());
         return false;
+    }
 
-    QCamera::Features features = camera->supportedFeatures();
-    bool bVal = features& QCamera::Feature::ColorTemperature;
-    qDebug() << "ColorTemperature = " <<  bVal;
-    bVal = features& QCamera::Feature::ExposureCompensation;
-    qDebug() << "ExposureCompensation = " <<  bVal;
-    bVal = features& QCamera::Feature::IsoSensitivity;
-    qDebug() << "IsoSensitivity = " <<  bVal;
-    bVal = features& QCamera::Feature::ManualExposureTime;
-    qDebug() << "ManualExposureTime = " <<  bVal;
-    bVal = features& QCamera::Feature::CustomFocusPoint;
-    qDebug() << "CustomFocusPoint = " <<  bVal;
-    bVal = features& QCamera::Feature::FocusDistance;
-    qDebug() << "FocusDistance = " <<  bVal;
+    // QCamera::Features features = camera->supportedFeatures();
+    // bool bVal = features& QCamera::Feature::ColorTemperature;
+    // qDebug() << "ColorTemperature = " <<  bVal;
+    // bVal = features& QCamera::Feature::ExposureCompensation;
+    // qDebug() << "ExposureCompensation = " <<  bVal;
+    // bVal = features& QCamera::Feature::IsoSensitivity;
+    // qDebug() << "IsoSensitivity = " <<  bVal;
+    // bVal = features& QCamera::Feature::ManualExposureTime;
+    // qDebug() << "ManualExposureTime = " <<  bVal;
+    // bVal = features& QCamera::Feature::CustomFocusPoint;
+    // qDebug() << "CustomFocusPoint = " <<  bVal;
+    // bVal = features& QCamera::Feature::FocusDistance;
+    // qDebug() << "FocusDistance = " <<  bVal;
 
     cameraFormats.clear();
     cameraFormats = camera->cameraDevice().videoFormats();
@@ -269,12 +265,11 @@ bool CameraControlDialog::openCamera(int index /* = 0 */)
 
         ui->comboBoxFormats->addItem(QString::number(cmf.resolution().width()) + " x " +
                                      QString::number(cmf.resolution().height()) + " : " +
-                                    pixelFormatMap[cmf.pixelFormat()] + "  " +
-                                    QString::number(cmf.maxFrameRate()) + "FPS");
+                                     pixelFormatMap[cmf.pixelFormat()] + "  " +
+                                     QString::number(cmf.maxFrameRate()) + "FPS");
     }
 
     camera->setCameraFormat(cameraFormats.at(0));
-
     CameraDescription = cameraDevices.at(index).description();
     captureSession.setCamera(camera);
     sink = new QVideoSink;
@@ -282,36 +277,132 @@ bool CameraControlDialog::openCamera(int index /* = 0 */)
     connect(sink, &QVideoSink::videoFrameChanged, this, &CameraControlDialog::getFrame);
     initControls();
     initializeSettingsGroup();
-    emit cameraIsReady();
+    isQCameraReady = true;
+    emit cameraStatus(true);
 
     ui->tabWidget->setEnabled(true);
     return true;
 }
-
-void CameraControlDialog::changeSetting()
-{
-    // qDebug() << "data=" << data;
-}
-
 void CameraControlDialog::initOpenCVCaptute()
 {
-    capture = cv::VideoCapture();
-    bool result =  capture.open(0);
+    this->setCursor(Qt::WaitCursor);
+    if (camera != nullptr) {
+        disableQCamera();
+    }
+    ui->comboVideoCapture->blockSignals(true);
+    videoCaptureCount = 0;
+    ui->comboVideoCapture->clear();
+
+    QVector<int> vIndex = videoCap->InitOpenCVCaptute();
+    videoCaptureCount = vIndex.size();
+    for (int i = 0; i < videoCaptureCount; ++i) {
+        int index = vIndex[i];
+        ui->comboVideoCapture->addItem(QString::number(index));
+    }
+    ui->comboVideoCapture->blockSignals(false);
+    addBrowserText(Qt::blue, "Number of VideoCapture >>> " + QString::number(videoCaptureCount));
+    if (videoCaptureCount == 0) {
+        QMessageBox::warning(this, "Warning", "No available capture found.");
+        this->setCursor(Qt::ArrowCursor);
+        return;
+    }
+
+    // Open 1st camera as default
+    openVideoCapture();
+}
+
+void CameraControlDialog::openVideoCapture(int index)
+{
+    this->setCursor(Qt::WaitCursor);
+    g_pUtil->SetCameraStatus(false);
+    bool result = videoCap->OpenVideoCapture(index);
     if (result) {
-        qDebug() << "FPS:" << capture.set(cv::CAP_PROP_FPS, 30);
-        qDebug() << "CODEC:" << capture.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M','J','P','G'));
-        qDebug() << "Width:" << capture.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
-        qDebug() << "Height:" << capture.set(cv::CAP_PROP_FRAME_HEIGHT, 960);
+        CameraDescription = "cv::VideoCapture(" + QString::number(index) + ")";
+        addBrowserText(Qt::blue, "Open::" + CameraDescription);
+        ui->groupBoxCaptureSetting->setEnabled(true);
+        dispLineEdit();
+        emit cameraStatus(true);
+        this->setCursor(Qt::ArrowCursor);
+    }
+    else {
+        this->setCursor(Qt::ArrowCursor);
+        QMessageBox::warning(this, "Warning", "Failed to open capture index=" + QString::number(index));
+    }
 
+}
 
-        qDebug() << "SETTING:" << capture.set(cv::CAP_PROP_SETTINGS, 1);
-        // qDebug() << "FPS:" << capture.get(cv::CAP_PROP_FPS);
-        qDebug() << "Width:" << capture.get(cv::CAP_PROP_FRAME_WIDTH);
-        qDebug() << "Height:" << capture.get(cv::CAP_PROP_FRAME_HEIGHT);
-        qDebug() << "CODEC:" << capture.get(cv::CAP_PROP_FOURCC);
+void CameraControlDialog::setLineEditorValue()
+{
+    if (videoCap->IsVideoCaptureReady()) {
+        int iVal;
+        double dVal;
+        bool result;
+        QString msg = "";
+        iVal = ui->lineEditWidth->text().toInt();
+        if (iVal != captureWidth) {
+            result = videoCap->SetCaptureProperty(cv::CAP_PROP_FRAME_WIDTH, iVal);
+            msg = "Width : " + QString::number(captureWidth) + " ==> " + QString::number(iVal);
+            addBrowserText(result, msg);
+        }
+        iVal =  ui->lineEditHeight->text().toInt();
+        if (iVal != captureHeight) {
+            result = videoCap->SetCaptureProperty(cv::CAP_PROP_FRAME_HEIGHT, iVal);
+            msg = "Height : " + QString::number(captureHeight) + " ==> " + QString::number(iVal);
+            addBrowserText(result, msg);
+        }
+        dVal = ui->lineEditFps->text().toDouble();
+        if (dVal != captureFps) {
+            qDebug() << "captureFps=" + QString::number(captureFps, 'f', 5);
+            qDebug() << "dVal=" + QString::number(dVal, 'f', 5);
+            result = videoCap->SetCaptureProperty(cv::CAP_PROP_FPS, dVal);
+            msg = "Fps : " + QString::number(captureFps) + " ==> " + QString::number(dVal);
+            addBrowserText(result, msg);
+        }
+        dispLineEdit();
+
     }
 }
 
+void CameraControlDialog::dispCaptureProperty()
+{
+    QString propText = videoCap->GetAllProperty();
+    addBrowserText(propText);
+    scrollBrowser();
+    dispLineEdit();
+}
+
+void CameraControlDialog::openCaptureControl()
+{
+    videoCap->SetCaptureProperty(cv::CAP_PROP_SETTINGS, 1);
+}
+
+void CameraControlDialog::setFormat()
+{
+    QString format = ui->lineEditFormat->text();
+    format = format.toUpper();
+    if (format.length() == 4) {
+        bool result = videoCap->SetCodec(format);
+        addBrowserText(result, "Set VideoFormat :" + format);
+    }
+}
+void CameraControlDialog::createActions()
+{
+    connect(ui->pushButtonDetectCamera, &QPushButton::clicked, this, &CameraControlDialog::detectQCamera);
+    connect(ui->comboBoxFormats, &QComboBox::currentIndexChanged, this, &CameraControlDialog::changeFormat);
+    connect(ui->comboVideoDevices, SIGNAL(currentIndexChanged(int)), this, SLOT(openCamera(int)));
+    connect(ui->tabWidgetControl, &QTabWidget::currentChanged, this, &CameraControlDialog::changeSetting);
+
+    connect(ui->pushButtonInitOpenCVCapture, &QPushButton::clicked, this, &CameraControlDialog::initOpenCVCaptute);
+    connect(ui->comboVideoCapture, SIGNAL(currentIndexChanged(int)), this, SLOT(openVideoCapture(int)));
+    connect(ui->pushButtonClear, &QPushButton::clicked, [this]() { ui->textBrowser->clear(); });
+
+    connect(ui->lineEditWidth, SIGNAL(editingFinished()), this, SLOT(setLineEditorValue()));
+    connect(ui->lineEditHeight, SIGNAL(editingFinished()), this, SLOT(setLineEditorValue()));
+    connect(ui->lineEditFps, SIGNAL(editingFinished()), this, SLOT(setLineEditorValue()));
+    connect(ui->pushButtonGetParam, &QPushButton::clicked, this, &CameraControlDialog::dispCaptureProperty);
+    connect(ui->pushButtonControl,  &QPushButton::clicked, this, &CameraControlDialog::openCaptureControl);
+    connect(ui->lineEditFormat, SIGNAL(editingFinished()), this, SLOT(setFormat()));
+}
 void CameraControlDialog::initControls()
 {
     ui->tabWidget->setEnabled(false);
@@ -487,6 +578,78 @@ void CameraControlDialog::initializeSettingsGroup()
     connect(ui->sliderFocusDistance, &QSlider::valueChanged, camera, [this](int value) {
         camera->setFocusDistance(value);
     });
+}
+
+void CameraControlDialog::disableQCamera()
+{
+    camera = nullptr;
+    sink = nullptr;
+    isQCameraReady = false;
+    ui->comboVideoDevices->blockSignals(true);
+    ui->comboVideoDevices->clear();
+    ui->comboVideoDevices->blockSignals(false);
+    ui->comboBoxFormats->blockSignals(true);
+    ui->comboBoxFormats->clear();
+    ui->comboBoxFormats->blockSignals(false);
+
+    ui->tabWidget->setEnabled(false);
+    emit cameraStatus(false);
+}
+void CameraControlDialog::dispLineEdit()
+{
+    captureWidth = (int)videoCap->GetCaptureProperty(cv::CAP_PROP_FRAME_WIDTH);
+    captureHeight = (int)videoCap->GetCaptureProperty(cv::CAP_PROP_FRAME_HEIGHT);
+
+    double dVal = videoCap->GetCaptureProperty(cv::CAP_PROP_FPS);
+    captureFps = std::round(dVal * 100) / 100;
+    //captureFps = videoCap->GetCaptureProperty(cv::CAP_PROP_FPS);
+
+    // 表示更新毎editingFinishedのsignalを防ぐ
+    //ui->lineEditWidth->blockSignals(true);
+    ui->lineEditWidth->setText(QString::number(captureWidth));
+    //ui->lineEditWidth->blockSignals(false);
+
+    //ui->lineEditHeight->blockSignals(true);
+    ui->lineEditHeight->setText(QString::number(captureHeight));
+    //ui->lineEditHeight->blockSignals(false);
+
+    //ui->lineEditFps->blockSignals(true);
+    ui->lineEditFps->setText(QString::number(captureFps));
+    //ui->lineEditFps->blockSignals(false);
+}
+
+void CameraControlDialog::addBrowserText(QString text)
+{
+    ui->textBrowser->setTextColor(Qt::black);
+    ui->textBrowser->insertPlainText(text + "\n");
+}
+void CameraControlDialog::addBrowserText(QColor color, QString text)
+{
+    ui->textBrowser->setTextColor(color);
+    ui->textBrowser->insertPlainText(text + "\n");
+}
+void CameraControlDialog::addBrowserText(bool bVal, QString text)
+{;
+    QColor color = bVal ? Qt::black : Qt::red;
+    ui->textBrowser->setTextColor(color);
+    ui->textBrowser->insertPlainText(text + "\n");
+}
+void CameraControlDialog::scrollBrowser()
+{
+    QScrollBar *sb = ui->textBrowser->verticalScrollBar();
+    sb->setValue(sb->maximum());
+}
+
+void CameraControlDialog::disableVideoCapture()
+{
+    videoCap->DisableVideoCapture();
+
+    ui->comboVideoCapture->blockSignals(true);
+    ui->comboVideoCapture->clear();
+    ui->comboVideoCapture->blockSignals(false);
+    ui->groupBoxCaptureSetting->setEnabled(false);
+
+    emit cameraStatus(false);
 }
 
 void CameraControlDialog::closeEvent(QCloseEvent *event)
