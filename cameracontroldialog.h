@@ -89,7 +89,7 @@ private:
 
     void dispLineEdit();
     void addBrowserText(QString text);
-    void addBrowserText(QColor color, QString text);
+    void addBrowserColorText(QColor color, QString text);
     void addBrowserText(bool bVal, QString text);
     void scrollBrowser();
     void disableVideoCapture();

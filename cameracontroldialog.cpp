@@ -300,7 +300,7 @@ void CameraControlDialog::initOpenCVCaptute()
         ui->comboVideoCapture->addItem(QString::number(index));
     }
     ui->comboVideoCapture->blockSignals(false);
-    addBrowserText(Qt::blue, "Number of VideoCapture >>> " + QString::number(videoCaptureCount));
+    addBrowserColorText(Qt::blue, "Number of VideoCapture >>> " + QString::number(videoCaptureCount));
     if (videoCaptureCount == 0) {
         QMessageBox::warning(this, "Warning", "No available capture found.");
         this->setCursor(Qt::ArrowCursor);
@@ -318,9 +318,8 @@ void CameraControlDialog::openVideoCapture(int index)
     bool result = videoCap->OpenVideoCapture(index);
     if (result) {
         CameraDescription = "cv::VideoCapture(" + QString::number(index) + ")";
-        addBrowserText(Qt::blue, "Open::" + CameraDescription);
+        addBrowserColorText(Qt::blue, "Open::" + CameraDescription);
         ui->groupBoxCaptureSetting->setEnabled(true);
-        dispLineEdit();
         emit cameraStatus(true);
         this->setCursor(Qt::ArrowCursor);
     }
@@ -358,8 +357,6 @@ void CameraControlDialog::setLineEditorValue()
             msg = "Fps : " + QString::number(captureFps) + " ==> " + QString::number(dVal);
             addBrowserText(result, msg);
         }
-        dispLineEdit();
-
     }
 }
 
@@ -602,20 +599,10 @@ void CameraControlDialog::dispLineEdit()
 
     double dVal = videoCap->GetCaptureProperty(cv::CAP_PROP_FPS);
     captureFps = std::round(dVal * 100) / 100;
-    //captureFps = videoCap->GetCaptureProperty(cv::CAP_PROP_FPS);
 
-    // 表示更新毎editingFinishedのsignalを防ぐ
-    //ui->lineEditWidth->blockSignals(true);
     ui->lineEditWidth->setText(QString::number(captureWidth));
-    //ui->lineEditWidth->blockSignals(false);
-
-    //ui->lineEditHeight->blockSignals(true);
     ui->lineEditHeight->setText(QString::number(captureHeight));
-    //ui->lineEditHeight->blockSignals(false);
-
-    //ui->lineEditFps->blockSignals(true);
     ui->lineEditFps->setText(QString::number(captureFps));
-    //ui->lineEditFps->blockSignals(false);
 }
 
 void CameraControlDialog::addBrowserText(QString text)
@@ -623,7 +610,7 @@ void CameraControlDialog::addBrowserText(QString text)
     ui->textBrowser->setTextColor(Qt::black);
     ui->textBrowser->insertPlainText(text + "\n");
 }
-void CameraControlDialog::addBrowserText(QColor color, QString text)
+void CameraControlDialog::addBrowserColorText(QColor color, QString text)
 {
     ui->textBrowser->setTextColor(color);
     ui->textBrowser->insertPlainText(text + "\n");

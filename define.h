@@ -5,7 +5,9 @@
 #include <QPoint>
 
 #define APP_NAME            "TegeViewer"
-#define APP_VERSION         "1.10"
+#define APP_VERSION         "1.20"
+
+#define MAX_CAPTURE         5
 
 #define STARTUP_WIDTH       1000
 #define STARTUP_HEIGHT      700

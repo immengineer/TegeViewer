@@ -98,7 +98,6 @@ QString CvVideoCapture::GetAllProperty()
 bool CvVideoCapture::SetCodec(QString format)
 {
     std::string sVal = format.toStdString();
-    //char* pCodec = format.toUtf8().data();
     const char* pCodec = sVal.c_str();
     bool result = capture.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc(pCodec[0], pCodec[1] , pCodec[2], pCodec[3]));
 

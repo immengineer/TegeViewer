@@ -673,7 +673,7 @@
      <widget class="QLineEdit" name="lineEditFps">
       <property name="geometry">
        <rect>
-        <x>100</x>
+        <x>190</x>
         <y>20</y>
         <width>40</width>
         <height>22</height>
@@ -690,13 +690,13 @@
        </rect>
       </property>
       <property name="text">
-       <string>Fps / Format</string>
+       <string>Format / Fps</string>
       </property>
      </widget>
      <widget class="QLineEdit" name="lineEditFormat">
       <property name="geometry">
        <rect>
-        <x>150</x>
+        <x>100</x>
         <y>20</y>
         <width>80</width>
         <height>22</height>
@@ -760,8 +760,8 @@
   </widget>
  </widget>
  <tabstops>
-  <tabstop>lineEditFps</tabstop>
   <tabstop>lineEditFormat</tabstop>
+  <tabstop>lineEditFps</tabstop>
   <tabstop>lineEditWidth</tabstop>
   <tabstop>lineEditHeight</tabstop>
   <tabstop>tabWidget</tabstop>
